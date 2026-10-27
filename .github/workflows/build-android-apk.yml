@@ -1,8 +1,10 @@
 name: Compilar APK Nativo ARGON OS 4.0
+
 on:
   push:
     branches: [ "main", "master", "principal" ]
   workflow_dispatch:
+
 jobs:
   build-apk:
     runs-on: ubuntu-latest
@@ -15,15 +17,16 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: 17
-      - name: Preparar Capacitor y Permisos Android
+      - name: Preparar Capacitor, Plugins Nativos (Bluetooth LE + Galería + Sensores)
         run: |
-          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npm init -y
+          npm install @capacitor/core@6.0.0 @capacitor/cli@6.0.0 @capacitor/android@6.0.0 @capacitor-community/bluetooth-le@6.0.0
           mkdir -p www
-          cp ARGON_OS_v4.html www/index.html
+          cp ARGON_OS_v4.html www/index.html || cp index.html www/index.html
           npx cap add android
-          sed -i 's/<\/manifest>/<uses-permission android:name="android.permission.BLUETOOTH"\/><uses-permission android:name="android.permission.BLUETOOTH_ADMIN"\/><uses-permission android:name="android.permission.BLUETOOTH_CONNECT"\/><uses-permission android:name="android.permission.BLUETOOTH_SCAN"\/><uses-permission android:name="android.permission.BODY_SENSORS"\/><uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"\/><\/manifest>/' android/app/src/main/AndroidManifest.xml
+          sed -i 's/<\/manifest>/<uses-permission android:name="android.permission.READ_MEDIA_IMAGES"\/><uses-permission android:name="android.permission.READ_MEDIA_VIDEO"\/><uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"\/><uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="32"\/><uses-permission android:name="android.permission.BLUETOOTH"\/><uses-permission android:name="android.permission.BLUETOOTH_ADMIN"\/><uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation"\/><uses-permission android:name="android.permission.BLUETOOTH_CONNECT"\/><uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"\/><uses-permission android:name="android.permission.BODY_SENSORS"\/><\/manifest>/' android/app/src/main/AndroidManifest.xml
           npx cap sync android
-      - name: Compilar APK
+      - name: Compilar APK con Gradle
         run: |
           cd android
           chmod +x gradlew
